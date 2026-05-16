@@ -22,8 +22,8 @@ public class UserDetailsServiceImpl implements UserDetailsService {
             throw new UsernameNotFoundException("No existe un usuario con el correo " + correo);
         }
 
-        if (!"Sí".equals(usuario.getAutorizado())) {
-            throw new UsernameNotFoundException("El usuario no está autorizado por el administrador");
+        if (!"Sí".equalsIgnoreCase(usuario.getAutorizado()) && !"Si".equalsIgnoreCase(usuario.getAutorizado())) {
+            throw new UsernameNotFoundException("Usuario pendiente de autorización");
         }
 
         return new UserDetailsImpl(usuario);
