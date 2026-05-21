@@ -2,6 +2,7 @@ package com.example.backend.presentation.empresa;
 
 import com.example.backend.logic.*;
 import com.example.backend.security.UserDetailsImpl;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -42,7 +43,7 @@ public class EmpresaController {
     @PostMapping("/publicar-puesto")
     public ResponseEntity<?> publicarPuesto(
             @AuthenticationPrincipal UserDetailsImpl userDetails,
-            @RequestBody PublicarPuestoRequest req) {
+            @Valid @RequestBody PublicarPuestoRequest req) {
 
         Empresa empresa = service.getEmpresa(userDetails.getUsuario().getId());
         Moneda moneda = service.getMoneda(req.idMoneda());
@@ -69,7 +70,7 @@ public class EmpresaController {
     public ResponseEntity<?> agregarRequisito(
             @AuthenticationPrincipal UserDetailsImpl userDetails,
             @PathVariable Integer id,
-            @RequestBody RequisitoRequest req) {
+            @Valid @RequestBody RequisitoRequest req) {
 
         Puesto puesto = service.getPuesto(id);
         if (puesto == null || !puesto.getIdEmpresa().getId().equals(userDetails.getUsuario().getId())) {

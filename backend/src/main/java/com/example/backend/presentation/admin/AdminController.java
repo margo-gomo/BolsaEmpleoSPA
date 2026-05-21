@@ -1,6 +1,7 @@
 package com.example.backend.presentation.admin;
 
 import com.example.backend.logic.*;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -59,7 +60,7 @@ public class AdminController {
 
     // POST /api/admin/caracteristicas
     @PostMapping("/caracteristicas")
-    public ResponseEntity<?> crearCaracteristica(@RequestBody CaracteristicaRequest req) {
+    public ResponseEntity<?> crearCaracteristica(@Valid @RequestBody CaracteristicaRequest req) {
         if (service.existeCaracteristicaPorNombre(req.nombre())) {
             return ResponseEntity.status(HttpStatus.CONFLICT)
                     .body(new MensajeResponse("Ya existe una característica con ese nombre"));

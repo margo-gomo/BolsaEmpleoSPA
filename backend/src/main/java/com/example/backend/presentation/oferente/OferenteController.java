@@ -2,6 +2,7 @@ package com.example.backend.presentation.oferente;
 
 import com.example.backend.logic.*;
 import com.example.backend.security.UserDetailsImpl;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -43,7 +44,7 @@ public class OferenteController {
     @PostMapping("/habilidades")
     public ResponseEntity<?> guardarHabilidad(
             @AuthenticationPrincipal UserDetailsImpl userDetails,
-            @RequestBody HabilidadRequest req) {
+            @Valid @RequestBody HabilidadRequest req) {
 
         OferenteCaracId id = new OferenteCaracId();
         id.setOferenteUsuarioId(userDetails.getUsuario().getId());

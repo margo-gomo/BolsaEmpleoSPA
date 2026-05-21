@@ -1,6 +1,7 @@
 package com.example.backend.presentation.publico;
 
 import com.example.backend.logic.*;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -76,7 +77,7 @@ public class PublicoController {
 
     // POST /api/publico/registro-empresa
     @PostMapping("/registro-empresa")
-    public ResponseEntity<?> registroEmpresa(@RequestBody RegistroEmpresaRequest req) {
+    public ResponseEntity<?> registroEmpresa(@Valid @RequestBody RegistroEmpresaRequest req) {
         // Verificar que el correo no exista
         if (service.getUsuarioByCorreo(req.correo()) != null) {
             return ResponseEntity.status(HttpStatus.CONFLICT)
@@ -107,7 +108,7 @@ public class PublicoController {
 
     // POST /api/publico/registro-oferente
     @PostMapping("/registro-oferente")
-    public ResponseEntity<?> registroOferente(@RequestBody RegistroOferenteRequest req) {
+    public ResponseEntity<?> registroOferente(@Valid @RequestBody RegistroOferenteRequest req) {
         if (service.getUsuarioByCorreo(req.correo()) != null) {
             return ResponseEntity.status(HttpStatus.CONFLICT)
                     .body(new ErrorResponse("El correo ya está registrado"));

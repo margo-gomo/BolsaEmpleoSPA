@@ -5,6 +5,7 @@ import com.example.backend.data.OferenteRepository;
 import com.example.backend.logic.Usuario;
 import com.example.backend.security.JwtService;
 import com.example.backend.security.UserDetailsImpl;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -32,7 +33,7 @@ public class AuthController {
     private OferenteRepository oferenteRepository;
 
     @PostMapping("/login")
-    public ResponseEntity<?> login(@RequestBody LoginRequest request) {
+    public ResponseEntity<?> login(@Valid @RequestBody LoginRequest request) {
         try {
             // Spring Security valida correo + clave y llama al UserDetailsServiceImpl
             Authentication auth = authenticationManager.authenticate(
