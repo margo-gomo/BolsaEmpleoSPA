@@ -175,4 +175,20 @@ public class EmpresaController {
                     .body(new MensajeResponse("Error al leer el archivo"));
         }
     }
+
+    // GET /api/empresa/solicitantes/{idPuesto}
+    @GetMapping("/solicitantes/{idPuesto}")
+    public ResponseEntity<?> verSolicitantes(
+            @AuthenticationPrincipal UserDetailsImpl userDetails,
+            @PathVariable Integer idPuesto) {
+
+        Puesto puesto = service.getPuesto(idPuesto);
+        if (puesto == null || !puesto.getIdEmpresa().getId()
+                .equals(userDetails.getUsuario().getId())) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                    .body(new MensajeResponse("No tenés acceso a este puesto"));
+        }
+
+        return ResponseEntity.ok(service.getSolicitantesPorPuesto(idPuesto));
+    }
 }

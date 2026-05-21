@@ -135,4 +135,21 @@ public class PublicoController {
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(new MensajeResponse("Registro exitoso. Esperá la aprobación del administrador"));
     }
+    // GET /api/publico/detalle-puesto/{id}
+    @GetMapping("/detalle-puesto/{id}")
+    public ResponseEntity<?> detallePuesto(@PathVariable Integer id) {
+        VDetallePuesto detalle = service.getVDetallePuesto(id);
+        if (detalle == null) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(new ErrorResponse("Puesto no encontrado"));
+        }
+        return ResponseEntity.ok(detalle);
+    }
+
+    // GET /api/publico/requisitos-puesto/{id}
+    @GetMapping("/requisitos-puesto/{id}")
+    public ResponseEntity<?> requisitosPuesto(@PathVariable Integer id) {
+        return ResponseEntity.ok(service.getAllPuestoCaracteristica(id));
+    }
+
 }

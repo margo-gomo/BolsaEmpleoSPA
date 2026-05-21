@@ -220,6 +220,9 @@ public class Service_BolsaEmpleo {
     public OferenteCarac getOferenteCarac(OferenteCaracId id) {
         return oferenteCaracRepository.findById(id).orElse(null);
     }
+    public void deleteOferenteCarac(OferenteCaracId id) {
+        oferenteCaracRepository.deleteById(id);
+    }
     @Autowired
     private OferentePuestoRepository oferentePuestoRepository;
     public OferentePuesto saveOferentePuesto(OferentePuesto op) {
@@ -227,6 +230,17 @@ public class Service_BolsaEmpleo {
     }
     public OferentePuesto getOferentePuesto(OferentePuestoId id) {
         return oferentePuestoRepository.findById(id).orElse(null);
+    }
+    public boolean existeOferentePuesto(OferentePuestoId id) {
+        return oferentePuestoRepository.existsById(id);
+    }
+
+    public List<OferentePuesto> getSolicitudesPorOferente(Integer oferenteId) {
+        return oferentePuestoRepository.findByOferenteUsuarioId(oferenteId);
+    }
+
+    public List<OferentePuesto> getSolicitantesPorPuesto(Integer puestoId) {
+        return oferentePuestoRepository.findByPuestoId(puestoId);
     }
     @Autowired
     private PuestoCaracRepository puestoCaracRepository;

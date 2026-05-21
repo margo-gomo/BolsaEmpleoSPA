@@ -16,6 +16,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
+import java.time.LocalDate;
 import java.util.Objects;
 
 @RestController
@@ -102,5 +103,65 @@ public class OferenteController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body(new MensajeResponse("Error al guardar el archivo"));
         }
+    }
+
+    // POST /api/oferente/solicitar-puesto/{idPuesto}
+    @PostMapping("/solicitar-puesto/{idPuesto}")
+    public ResponseEntity<?> solicitarPuesto(
+            @AuthenticationPrincipal UserDetailsImpl userDetails,
+            @PathVariable Integer idPuesto) {
+
+        Puesto puesto = service.getPuesto(idPuesto);
+        if (puesto == null || !"Sí".equals(puesto.getActivo())) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(new MensajeResponse("Puesto no encontrado o inactivo"));
+        }
+
+        OferentePuestoId id = new OferentePuestoId();
+        id.setOferenteUsuarioId(userDetails.getUsuario().getId());
+        id.setPuestoId(idPuesto);
+
+        if (service.existeOferentePuesto(id)) {
+            return ResponseEntity.status(HttpStatus.CONFLICT)
+                    .body(new MensajeResponse("Ya solicitaste este puesto"));
+        }
+
+        OferentePuesto solicitud = new OferentePuesto();
+        solicitud.setId(id);
+        solicitud.setOferenteUsuario(service.getOferente(userDetails.getUsuario().getId()));
+        solicitud.setPuesto(puesto);
+        solicitud.setFechaSolicitud(LocalDate.now());
+        service.saveOferentePuesto(solicitud);
+
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(new MensajeResponse("Solicitud enviada correctamente"));
+    }
+
+    // GET /api/oferente/mis-solicitudes
+    @GetMapping("/mis-solicitudes")
+    public ResponseEntity<?> misSolicitudes(
+            @AuthenticationPrincipal UserDetailsImpl userDetails) {
+        return ResponseEntity.ok(
+                service.getSolicitudesPorOferente(userDetails.getUsuario().getId())
+        );
+    }
+
+    // DELETE /api/oferente/habilidades/{idCaracteristica}
+    @DeleteMapping("/habilidades/{idCaracteristica}")
+    public ResponseEntity<?> eliminarHabilidad(
+            @AuthenticationPrincipal UserDetailsImpl userDetails,
+            @PathVariable Integer idCaracteristica) {
+
+        OferenteCaracId id = new OferenteCaracId();
+        id.setOferenteUsuarioId(userDetails.getUsuario().getId());
+        id.setCaracteristicaId(idCaracteristica);
+
+        if (service.getOferenteCarac(id) == null) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(new MensajeResponse("Habilidad no encontrada"));
+        }
+
+        service.deleteOferenteCarac(id);
+        return ResponseEntity.ok(new MensajeResponse("Habilidad eliminada correctamente"));
     }
 }
