@@ -61,6 +61,8 @@ public class OferenteController {
         }
         oc.setNivel(req.nivel());
         service.saveOferenteCarac(oc);
+        service.registrarLog(userDetails.getUsuario().getId(), "Oferente",
+                "REGISTRAR_HABILIDAD", "Carac=" + req.idCaracteristica() + " nivel=" + req.nivel());
 
         return ResponseEntity.ok(new MensajeResponse("Habilidad guardada"));
     }
@@ -96,6 +98,8 @@ public class OferenteController {
             Oferente oferente = service.getOferente(userDetails.getUsuario().getId());
             oferente.setRutaCv(nombreArchivo);
             service.saveOferente(oferente);
+            service.registrarLog(userDetails.getUsuario().getId(), "Oferente",
+                    "SUBIR_CV", nombreArchivo + " subido");
 
             return ResponseEntity.ok(new MensajeResponse("CV subido correctamente"));
 
@@ -132,6 +136,8 @@ public class OferenteController {
         solicitud.setPuesto(puesto);
         solicitud.setFechaSolicitud(LocalDate.now());
         service.saveOferentePuesto(solicitud);
+        service.registrarLog(userDetails.getUsuario().getId(), "Oferente",
+                "SOLICITAR_PUESTO", "Puesto id=" + idPuesto + " solicitado");
 
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(new MensajeResponse("Solicitud enviada correctamente"));
@@ -162,6 +168,8 @@ public class OferenteController {
         }
 
         service.deleteOferenteCarac(id);
+        service.registrarLog(userDetails.getUsuario().getId(), "Oferente",
+                "ELIMINAR_HABILIDAD", "Carac=" + idCaracteristica + " eliminada");
         return ResponseEntity.ok(new MensajeResponse("Habilidad eliminada correctamente"));
     }
 }

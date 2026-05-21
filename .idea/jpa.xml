@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="JpaBuddyIdeaProjectConfig">
+    <option name="reLastEntityCreationPackage" value="backend/src/main/java/com/example/backend" />
+    <option name="reverseEngineeringLastDbConnectionId" value="69e6da53-16d5-4536-a2d5-ea15de8f3c83" />
+  </component>
+  <component name="PersistenceUnitSettings">
+    <persistence-units>
+      <persistence-unit moduleName="backend" name="backend" framework="JPA" ormUnit="backend:backend" defaultDataSourceId="69e6da53-16d5-4536-a2d5-ea15de8f3c83" />
+    </persistence-units>
+  </component>
+</project>

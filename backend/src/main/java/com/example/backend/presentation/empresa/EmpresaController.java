@@ -61,6 +61,8 @@ public class EmpresaController {
         puesto.setTipo(req.tipo()); // "Pública" o "Privada"
         puesto.setActivo("Sí");
         Puesto guardado = service.savePuesto(puesto);
+        service.registrarLog(userDetails.getUsuario().getId(), "Empresa",
+                "PUBLICAR_PUESTO", "Puesto id=" + guardado.getId() + " creado");
 
         return ResponseEntity.status(HttpStatus.CREATED).body(guardado.getId());
     }
@@ -88,6 +90,8 @@ public class EmpresaController {
         pc.setCaracteristica(service.getCaracteristica(req.idCaracteristica()));
         pc.setNivel(req.nivel());
         service.savePuestoCarac(pc);
+        service.registrarLog(userDetails.getUsuario().getId(), "Empresa",
+                "AGREGAR_REQUISITO", "Carac=" + req.idCaracteristica() + " nivel=" + req.nivel() + " puesto=" + id);
 
         return ResponseEntity.ok(new MensajeResponse("Requisito agregado"));
     }
@@ -109,6 +113,8 @@ public class EmpresaController {
         pcId.setPuestoId(idPuesto);
         pcId.setCaracteristicaId(idCarac);
         service.deletePuestoCarac(pcId);
+        service.registrarLog(userDetails.getUsuario().getId(), "Empresa",
+                "ELIMINAR_REQUISITO", "Carac=" + idCarac + " eliminado del puesto=" + idPuesto);
 
         return ResponseEntity.ok(new MensajeResponse("Requisito eliminado"));
     }
@@ -126,7 +132,30 @@ public class EmpresaController {
         }
         puesto.setActivo("No");
         service.savePuesto(puesto);
+        service.registrarLog(userDetails.getUsuario().getId(), "Empresa",
+                "DESACTIVAR_PUESTO", "Puesto id=" + id + " desactivado");
         return ResponseEntity.ok(new MensajeResponse("Puesto desactivado"));
+    }
+
+    // PUT /api/empresa/activar-puesto/{id}
+    @PutMapping("/activar-puesto/{id}")
+    public ResponseEntity<?> activarPuesto(
+            @AuthenticationPrincipal UserDetailsImpl userDetails,
+            @PathVariable Integer id) {
+
+        Puesto puesto = service.getPuesto(id);
+        if (puesto == null || !puesto.getIdEmpresa().getId()
+                .equals(userDetails.getUsuario().getId())) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                    .body(new MensajeResponse("No tenés acceso a este puesto"));
+        }
+        puesto.setActivo("Sí");
+        service.savePuesto(puesto);
+
+        service.registrarLog(userDetails.getUsuario().getId(), "Empresa",
+                "ACTIVAR_PUESTO", "Puesto id=" + id + " activado");
+
+        return ResponseEntity.ok(new MensajeResponse("Puesto activado correctamente"));
     }
 
     // GET /api/empresa/buscar-candidatos?puestoId=5

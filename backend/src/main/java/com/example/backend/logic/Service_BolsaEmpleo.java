@@ -4,6 +4,7 @@ import com.example.backend.data.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -268,5 +269,33 @@ public class Service_BolsaEmpleo {
             nodo.getHijas().add(construirNodo(hija));
         }
         return nodo;
+    }
+
+    @Autowired
+    private LogActividadRepository logActividadRepository;
+
+    // Registrar una acción
+    public void registrarLog(Integer usuarioId, String tipoUsuario,
+                             String accion, String detalle) {
+        LogActividad log = new LogActividad();
+        log.setUsuario(getUsuario(usuarioId));
+        log.setTipoUsuario(tipoUsuario);
+        log.setAccion(accion);
+        log.setDetalle(detalle);
+        log.setFecha(Instant.now());
+        logActividadRepository.save(log);
+    }
+
+    // Consultar logs
+    public List<LogActividad> getAllLogs() {
+        return logActividadRepository.findAllByOrderByFechaDesc();
+    }
+
+    public List<LogActividad> getLogsPorTipo(String tipoUsuario) {
+        return logActividadRepository.findByTipoUsuarioOrderByFechaDesc(tipoUsuario);
+    }
+
+    public List<LogActividad> getLogsPorUsuario(Integer usuarioId) {
+        return logActividadRepository.findByUsuario_IdOrderByFechaDesc(usuarioId);
     }
 }
