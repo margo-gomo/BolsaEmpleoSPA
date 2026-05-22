@@ -16,13 +16,12 @@ export default function Login() {
         setError(null)
         try {
             const datos = await loginApi(correo, clave)
-            // datos = { token, tipoUsuario, id, nombre }
-            login(datos.token, { tipoUsuario: datos.tipoUsuario, id: datos.id, nombre: datos.nombre })
+            login(datos.token, { tipoUsuario: datos.rol, id: datos.id, nombre: datos.nombre })
 
             // Redirigir según rol
-            if (datos.tipoUsuario === 'Empresa') navigate('/empresa/dashboard')
-            else if (datos.tipoUsuario === 'Oferente') navigate('/oferente/dashboard')
-            else if (datos.tipoUsuario === 'Admin') navigate('/admin/dashboard')
+            if (datos.rol === 'Empresa') navigate('/empresa/dashboard')
+            else if (datos.rol === 'Oferente') navigate('/oferente/dashboard')
+            else if (datos.rol === 'Admin') navigate('/admin/dashboard')
             else navigate('/')
         } catch (err) {
             setError('Correo o clave incorrectos, o usuario no autorizado.')
