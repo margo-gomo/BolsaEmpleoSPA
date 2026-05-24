@@ -1,6 +1,8 @@
 package com.example.backend.logic;
 
-/*import com.lowagie.text.*;
+import com.lowagie.text.*;
+import com.lowagie.text.Font;
+import com.lowagie.text.Rectangle;
 import com.lowagie.text.pdf.PdfPCell;
 import com.lowagie.text.pdf.PdfPTable;
 import com.lowagie.text.pdf.PdfWriter;
@@ -14,10 +16,10 @@ import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 
-@Service*/
+@Service
 public class PdfReporteService {
 
-    /*@Autowired
+    @Autowired
     private Service_BolsaEmpleo serviceBolsaEmpleo;
 
     private static final Color AZUL_OSCURO = new Color(30,  60,  114);
@@ -310,5 +312,5 @@ public class PdfReporteService {
             if (i < meses.size() - 1) sb.append(", ");
         }
         return sb.toString();
-    }*/
+    }
 }

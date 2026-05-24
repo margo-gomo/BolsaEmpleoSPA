@@ -296,3 +296,29 @@ export async function crearCaracteristica(datos, token) {
     if (!res.ok) throw new Error('Error al crear característica')
     return res.json()
 }
+
+export async function descargarReporteMeses(meses, todosMeses, token) {
+    const params = new URLSearchParams()
+    if (todosMeses) {
+        params.append('todosMeses', 'true')
+    } else {
+        meses.forEach(m => params.append('meses', m))
+    }
+    const res = await fetch(`/api/admin/reporte-meses?${params}`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+    })
+    if (!res.ok) throw new Error('Error al generar reporte')
+    const blob = await res.blob()
+    const url = URL.createObjectURL(blob)
+    window.open(url, '_blank')
+}
+
+export async function descargarReporteSalarios(token) {
+    const res = await fetch(`/api/admin/reporte-salarios`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+    })
+    if (!res.ok) throw new Error('Error al generar reporte')
+    const blob = await res.blob()
+    const url = URL.createObjectURL(blob)
+    window.open(url, '_blank')
+}
