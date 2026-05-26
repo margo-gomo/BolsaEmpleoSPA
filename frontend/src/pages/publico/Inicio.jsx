@@ -9,6 +9,7 @@ export default function Inicio() {
     const { usuario } = useAuth()
     const [puestos, setPuestos] = useState([])
     const [requisitos, setRequisitos] = useState({})
+    const [cargandoPuestos, setCargandoPuestos] = useState(true)
 
     useEffect(() => {
         getPuestosRecientes()
@@ -18,16 +19,16 @@ export default function Inicio() {
                 await Promise.all(
                     lista.map(async (p) => {
                         try {
-                            const reqs = await getRequisitosPuesto(p.id)
-                            mapa[p.id] = reqs
+                            mapa[p.puestoId] = await getRequisitosPuesto(p.puestoId)
                         } catch (_) {
-                            mapa[p.id] = []
+                            mapa[p.puestoId] = []
                         }
                     })
                 )
                 setRequisitos(mapa)
             })
             .catch(console.error)
+            .finally(() => setCargandoPuestos(false))
     }, [])
 
     return (
@@ -36,7 +37,6 @@ export default function Inicio() {
 
             <main className="home-main">
 
-                {/* ── Panel izquierdo: bienvenida según rol ── */}
                 <section className="home-hero">
                     <div className="register-card home-card">
 
@@ -51,13 +51,16 @@ export default function Inicio() {
                                     <Link to="/registro-oferente" className="btn btn-outline btn-home-outline">
                                         Soy un oferente
                                     </Link>
+                                    <Link to="/login" className="btn btn-outline btn-home-outline">
+                                        Iniciar sesión
+                                    </Link>
                                 </div>
                             </>
                         )}
 
                         {usuario?.tipoUsuario === 'Oferente' && (
                             <>
-                                <h1>Bienvenido de nuevo</h1>
+                                <h1>¡Hola, {usuario.nombre}!</h1>
                                 <p>Explorá puestos recientes, administrá tus habilidades y mantené tu currículo actualizado.</p>
                                 <div className="actions-row">
                                     <Link to="/oferente/dashboard" className="btn btn-primary">
@@ -78,7 +81,7 @@ export default function Inicio() {
 
                         {usuario?.tipoUsuario === 'Empresa' && (
                             <>
-                                <h1>Bienvenida empresa</h1>
+                                <h1>¡Hola, {usuario.nombre}!</h1>
                                 <p>Gestioná tus publicaciones, revisá candidatos y dá seguimiento a tus puestos disponibles.</p>
                                 <div className="actions-row">
                                     <Link to="/empresa/dashboard" className="btn btn-primary">
@@ -96,8 +99,8 @@ export default function Inicio() {
 
                         {usuario?.tipoUsuario === 'Admin' && (
                             <>
-                                <h1>Bienvenido administrador</h1>
-                                <p>Supervisá registros pendientes, administrá características y revisá el estado general del sistema.</p>
+                                <h1>¡Hola, {usuario.nombre}!</h1>
+                                <p>Supervisá registros pendientes, administrá características y revisá el estado del sistema.</p>
                                 <div className="actions-row">
                                     <Link to="/admin/dashboard" className="btn btn-primary">
                                         Ir a mi dashboard
@@ -118,28 +121,40 @@ export default function Inicio() {
                     </div>
                 </section>
 
-                {/* ── Panel derecho: últimos 5 puestos ── */}
                 <section className="recent-jobs">
                     <h2>Puestos recientes</h2>
+
+                    {cargandoPuestos && (
+                        <p style={{ color: 'var(--text-soft)', fontSize: 15 }}>Cargando puestos...</p>
+                    )}
+
                     <div className="jobs-container">
+                        {!cargandoPuestos && puestos.length === 0 && (
+                            <p style={{ color: 'var(--text-soft)', gridColumn: '1/-1' }}>
+                                No hay puestos publicados aún.
+                            </p>
+                        )}
+
                         {puestos.map(p => (
-                            <div key={p.id} className="job-card">
+                            <div key={p.puestoId} className="job-card">
                                 <h3>{p.descripcion}</h3>
                                 <p className="job-company">{p.empresa}</p>
-                                <p className="job-salary">{p.moneda} {p.salario}</p>
+                                <p className="job-salary">{p.simbolo} {p.salario}</p>
 
                                 <div className="job-hover">
                                     <p><strong>Características requeridas</strong></p>
-                                    {requisitos[p.id] && requisitos[p.id].length > 0 ? (
+                                    {requisitos[p.puestoId]?.length > 0 ? (
                                         <ul className="job-hover-list">
-                                            {requisitos[p.id].map(c => (
+                                            {requisitos[p.puestoId].map(c => (
                                                 <li key={c.id}>
                                                     {c.caracteristica} (nivel {c.nivel})
                                                 </li>
                                             ))}
                                         </ul>
                                     ) : (
-                                        <p>Sin características registradas.</p>
+                                        <p style={{ marginTop: 8, opacity: 0.85 }}>
+                                            Sin características registradas.
+                                        </p>
                                     )}
                                 </div>
                             </div>

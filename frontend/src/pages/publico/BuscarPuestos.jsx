@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useAuth } from '../../context/AuthContext'
 import {
     getCaracteristicas,
@@ -13,6 +13,7 @@ import Footer from '../../components/Footer'
 export default function BuscarPuestos() {
     const { usuario, token } = useAuth()
     const esOferente = usuario?.tipoUsuario === 'Oferente'
+    const mensajeRef = useRef(null)
 
     const [categorias, setCategorias] = useState([])
     const [seleccionadas, setSeleccionadas] = useState([])
@@ -22,12 +23,17 @@ export default function BuscarPuestos() {
     const [buscado, setBuscado] = useState(false)
     const [mensaje, setMensaje] = useState(null)
     const [cargando, setCargando] = useState(false)
+    const [solicitando, setSolicitando] = useState(null)
 
     useEffect(() => {
-        getCaracteristicas()
-            .then(setCategorias)
-            .catch(console.error)
+        getCaracteristicas().then(setCategorias).catch(console.error)
     }, [])
+
+    useEffect(() => {
+        if (mensaje && mensajeRef.current) {
+            mensajeRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' })
+        }
+    }, [mensaje])
 
     function toggleSeleccionada(id) {
         setSeleccionadas(prev =>
@@ -37,6 +43,10 @@ export default function BuscarPuestos() {
 
     async function handleBuscar(e) {
         e.preventDefault()
+        if (seleccionadas.length === 0) {
+            setMensaje({ tipo: 'warning', texto: 'Seleccioná al menos una característica para buscar.' })
+            return
+        }
         setMensaje(null)
         setCargando(true)
         try {
@@ -52,6 +62,10 @@ export default function BuscarPuestos() {
             setResultados(unicos)
             setBuscado(true)
 
+            if (unicos.length === 0) {
+                setMensaje({ tipo: 'warning', texto: 'No se encontraron puestos con esas características.' })
+            }
+
             const mapa = {}
             await Promise.all(
                 unicos.map(async (r) => {
@@ -64,7 +78,7 @@ export default function BuscarPuestos() {
             )
             setRequisitosMap(mapa)
         } catch (err) {
-            setMensaje({ tipo: 'error', texto: 'Error al realizar la búsqueda.' })
+            setMensaje({ tipo: 'error', texto: 'Ocurrió un error al realizar la búsqueda. Intentá de nuevo.' })
         } finally {
             setCargando(false)
         }
@@ -81,15 +95,18 @@ export default function BuscarPuestos() {
 
     async function handleSolicitar(puestoId) {
         setMensaje(null)
+        setSolicitando(puestoId)
         try {
             await solicitarPuesto(puestoId, token)
             setMensaje({ tipo: 'success', texto: 'Solicitud enviada correctamente.' })
         } catch (err) {
             if (err.status === 409) {
-                setMensaje({ tipo: 'warning', texto: 'Ya habías solicitado este puesto.' })
+                setMensaje({ tipo: 'warning', texto: 'Ya habías solicitado este puesto anteriormente.' })
             } else {
-                setMensaje({ tipo: 'error', texto: 'No fue posible procesar la solicitud.' })
+                setMensaje({ tipo: 'error', texto: 'No fue posible enviar la solicitud. Intentá de nuevo.' })
             }
+        } finally {
+            setSolicitando(null)
         }
     }
 
@@ -100,15 +117,22 @@ export default function BuscarPuestos() {
             <main className="page-container">
                 <section className="page-header buscar-header">
                     <h1>Buscar puestos</h1>
-                    <p>Consultá oportunidades disponibles según las características requeridas.</p>
+                    <p>Seleccioná las características que te interesan y buscá puestos disponibles.</p>
                 </section>
 
-                <section className="buscar-layout">
+                {mensaje && (
+                    <div ref={mensajeRef} className={`alert ${mensaje.tipo}`}>
+                        {mensaje.texto}
+                    </div>
+                )}
 
+                <div style={{ display: 'grid', gridTemplateColumns: '340px 1fr', gap: 22, alignItems: 'start' }}>
+
+                    {/* ── Panel izquierdo: filtros ── */}
                     <article className="buscar-panel">
-                        <h2>Buscar puestos por características</h2>
-
+                        <h2>Filtros</h2>
                         <form className="buscar-form" onSubmit={handleBuscar}>
+
                             <div className="buscar-tree-box">
                                 <ArbolCaracteristicas
                                     categorias={categorias}
@@ -116,6 +140,12 @@ export default function BuscarPuestos() {
                                     onToggle={toggleSeleccionada}
                                 />
                             </div>
+
+                            {seleccionadas.length > 0 && (
+                                <p style={{ fontSize: 13, color: 'var(--primary)', fontWeight: 600 }}>
+                                    {seleccionadas.length} característica{seleccionadas.length > 1 ? 's' : ''} seleccionada{seleccionadas.length > 1 ? 's' : ''}
+                                </p>
+                            )}
 
                             <div className="modo-coincidencia">
                                 <p>Modo de coincidencia</p>
@@ -126,7 +156,7 @@ export default function BuscarPuestos() {
                                         checked={esAND === true}
                                         onChange={() => setEsAND(true)}
                                     />
-                                    <span>Todas</span>
+                                    <span>Todas las seleccionadas</span>
                                 </label>
                                 <label className="radio-option">
                                     <input
@@ -135,7 +165,7 @@ export default function BuscarPuestos() {
                                         checked={esAND === false}
                                         onChange={() => setEsAND(false)}
                                     />
-                                    <span>Cualquiera</span>
+                                    <span>Cualquiera de las seleccionadas</span>
                                 </label>
                             </div>
 
@@ -158,22 +188,23 @@ export default function BuscarPuestos() {
                         </form>
                     </article>
 
-                    <article className="buscar-panel resultados-panel">
-                        <h2>Resultados</h2>
+                    <article className="buscar-panel">
+                        <h2>
+                            Resultados
+                            {buscado && resultados.length > 0 && (
+                                <span style={{ fontSize: 15, fontWeight: 400, color: 'var(--text-soft)', marginLeft: 10 }}>
+                                    ({resultados.length} puesto{resultados.length > 1 ? 's' : ''})
+                                </span>
+                            )}
+                        </h2>
 
-                        {mensaje && (
-                            <div className={`alert ${mensaje.tipo}`}>
-                                {mensaje.texto}
-                            </div>
+                        {!buscado && (
+                            <p className="empty-state">
+                                Seleccioná características y presioná Buscar para ver resultados.
+                            </p>
                         )}
 
-                        {buscado && resultados.length === 0 && (
-                            <div className="empty-state">
-                                No se encontraron resultados.
-                            </div>
-                        )}
-
-                        {resultados.length > 0 && (
+                        {buscado && resultados.length > 0 && (
                             <div className="resultados-lista">
                                 {resultados.map(r => (
                                     <div key={r.puestoId} className="resultado-card">
@@ -181,13 +212,10 @@ export default function BuscarPuestos() {
                                         <div className="resultado-titulo">{r.descripcion}</div>
 
                                         <div className="resultado-salario">
-                                            <strong>Salario: </strong>
-                                            {r.simbolo} {r.salario}
+                                            <strong>Salario: </strong>{r.simbolo} {r.salario}
                                         </div>
-
                                         <div className="resultado-tipo">
-                                            <strong>Tipo: </strong>
-                                            {r.tipo}
+                                            <strong>Tipo: </strong>{r.tipo}
                                         </div>
 
                                         {requisitosMap[r.puestoId]?.length > 0 && (
@@ -208,9 +236,20 @@ export default function BuscarPuestos() {
                                                 <button
                                                     className="btn btn-primary btn-action"
                                                     onClick={() => handleSolicitar(r.puestoId)}
+                                                    disabled={solicitando === r.puestoId}
                                                 >
-                                                    Solicitar
+                                                    {solicitando === r.puestoId ? 'Enviando...' : 'Solicitar'}
                                                 </button>
+                                            </div>
+                                        )}
+
+                                        {!usuario && (
+                                            <div className="resultado-actions">
+                                                <p style={{ fontSize: 13, color: 'var(--text-soft)' }}>
+                                                    <a href="/login" style={{ color: 'var(--primary)', fontWeight: 600 }}>
+                                                        Iniciá sesión
+                                                    </a>{' '}como oferente para solicitar este puesto.
+                                                </p>
                                             </div>
                                         )}
                                     </div>
@@ -219,7 +258,7 @@ export default function BuscarPuestos() {
                         )}
                     </article>
 
-                </section>
+                </div>
             </main>
 
             <Footer />

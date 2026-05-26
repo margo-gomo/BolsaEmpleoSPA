@@ -3,6 +3,7 @@ package com.example.backend.security;
 import com.example.backend.data.UsuarioRepository;
 import com.example.backend.logic.Usuario;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.authentication.DisabledException;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -23,7 +24,7 @@ public class UserDetailsServiceImpl implements UserDetailsService {
         }
 
         if (!"Sí".equalsIgnoreCase(usuario.getAutorizado()) && !"Si".equalsIgnoreCase(usuario.getAutorizado())) {
-            throw new UsernameNotFoundException("Usuario pendiente de autorización");
+            throw new DisabledException("Usuario pendiente de autorización");
         }
 
         return new UserDetailsImpl(usuario);

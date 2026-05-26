@@ -1,60 +1,105 @@
-import { Link, useNavigate } from 'react-router-dom'
+import { useState } from 'react'
+import { NavLink, useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
+
 
 export default function Navbar() {
     const { usuario, logout } = useAuth()
     const navigate = useNavigate()
+    const [menuAbierto, setMenuAbierto] = useState(false)
 
     function handleLogout() {
         logout()
         navigate('/')
     }
 
+    const cerrar = () => setMenuAbierto(false)
+
     return (
         <nav className="navbar">
             <div className="nav-container">
                 <div className="logo">
-                    <Link to="/"><h2>BolsaEmpleo</h2></Link>
+                    <NavLink to="/" end onClick={cerrar}>
+                        <h2>BolsaEmpleo</h2>
+                    </NavLink>
                 </div>
-                <div className="nav-links">
-                    <Link to="/buscar-puestos">Buscar</Link>
 
+                <button
+                    type="button"
+                    className="nav-toggle-label"
+                    onClick={() => setMenuAbierto(!menuAbierto)}
+                    aria-label="Menú"
+                >
+                    <span /><span /><span />
+                </button>
+
+                <div className={`nav-links${menuAbierto ? ' open' : ''}`}>
+
+                    <NavLink to="/buscar-puestos" end onClick={cerrar}>
+                        Buscar puestos
+                    </NavLink>
+
+                    {/* ── Sin sesión ── */}
                     {!usuario && (
                         <>
-                            <Link to="/registro-empresa">Empresa</Link>
-                            <Link to="/registro-oferente">Oferente</Link>
-                            <Link to="/login">Login</Link>
+                            <NavLink to="/registro-empresa" end onClick={cerrar}>
+                                Registrar empresa
+                            </NavLink>
+                            <NavLink to="/registro-oferente" end onClick={cerrar}>
+                                Registrarme como oferente
+                            </NavLink>
+                            <NavLink to="/login" end onClick={cerrar}>
+                                Iniciar sesión
+                            </NavLink>
                         </>
                     )}
 
+                    {/* ── Empresa ── */}
                     {usuario?.tipoUsuario === 'Empresa' && (
                         <>
-                            <Link to="/empresa/dashboard">Dashboard</Link>
-                            <Link to="/empresa/publicar-puesto">Publicar Puesto</Link>
-                            <Link to="/empresa/mis-puestos">Mis Puestos</Link>
-                            <Link to="/empresa/buscar-candidatos">Candidatos</Link>
+                            <NavLink to="/empresa/dashboard" end onClick={cerrar}>Dashboard</NavLink>
+                            <NavLink to="/empresa/publicar-puesto" end onClick={cerrar}>Publicar puesto</NavLink>
+                            <NavLink to="/empresa/mis-puestos" end onClick={cerrar}>Mis puestos</NavLink>
                         </>
                     )}
 
+                    {/* ── Oferente ── */}
                     {usuario?.tipoUsuario === 'Oferente' && (
                         <>
-                            <Link to="/oferente/dashboard">Dashboard</Link>
-                            <Link to="/oferente/habilidades">Habilidades</Link>
-                            <Link to="/oferente/cv">Mi CV</Link>
+                            <NavLink to="/oferente/dashboard" end onClick={cerrar}>Dashboard</NavLink>
+                            <NavLink to="/oferente/habilidades" end onClick={cerrar}>Mis habilidades</NavLink>
+                            <NavLink to="/oferente/cv" end onClick={cerrar}>Mi CV</NavLink>
                         </>
                     )}
 
+                    {/* ── Admin ── */}
                     {usuario?.tipoUsuario === 'Admin' && (
                         <>
-                            <Link to="/admin/dashboard">Dashboard</Link>
-                            <Link to="/admin/empresas-pendientes">Empresas</Link>
-                            <Link to="/admin/oferentes-pendientes">Oferentes</Link>
-                            <Link to="/admin/caracteristicas">Características</Link>
+                            <NavLink to="/admin/dashboard" end onClick={cerrar}>Dashboard</NavLink>
+                            <NavLink to="/admin/empresas-pendientes" end onClick={cerrar}>Empresas</NavLink>
+                            <NavLink to="/admin/oferentes-pendientes" end onClick={cerrar}>Oferentes</NavLink>
+                            <NavLink to="/admin/caracteristicas" end onClick={cerrar}>Características</NavLink>
                         </>
                     )}
 
+                    {/* ── Usuario logueado ── */}
                     {usuario && (
-                        <button onClick={handleLogout} className="btn btn-outline">Salir</button>
+                        <>
+                            <span style={{
+                                fontSize: 13,
+                                color: 'var(--text-soft)',
+                                padding: '10px 8px',
+                                fontWeight: 600
+                            }}>
+                                {usuario.nombre}
+                            </span>
+                            <button
+                                onClick={() => { handleLogout(); cerrar() }}
+                                className="btn btn-outline btn-sm"
+                            >
+                                Cerrar sesión
+                            </button>
+                        </>
                     )}
                 </div>
             </div>
