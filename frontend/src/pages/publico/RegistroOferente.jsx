@@ -31,8 +31,9 @@ export default function RegistroOferente() {
     const [provincias, setProvincias] = useState([])
     const [cantones, setCantones] = useState([])
     const [prefijos, setPrefijos] = useState([])
+    const [cargandoCantones, setCargandoCantones] = useState(false)
 
-    const [error, setError] = useState(null)
+    const [errores, setErrores] = useState([]) // lista de errores del backend
     const [exito, setExito] = useState(false)
     const [cargando, setCargando] = useState(false)
 
@@ -52,24 +53,41 @@ export default function RegistroOferente() {
         setForm(prev => ({ ...prev, provinciaId: idProvincia, idProvinciaCanton: '' }))
         setCantones([])
         if (!idProvincia) return
+        setCargandoCantones(true)
         try {
             const lista = await getCantones(idProvincia)
             setCantones(lista)
         } catch (err) {
-            console.error('Error cargando cantones', err)
+            setErrores(['No se pudieron cargar los cantones. Intentá de nuevo.'])
+        } finally {
+            setCargandoCantones(false)
         }
+    }
+
+    // Validaciones del lado del cliente antes de enviar
+    function validar() {
+        const msgs = []
+        if (form.clave.length < 6)
+            msgs.push('La clave debe tener al menos 6 caracteres.')
+        if (form.clave !== form.confirmPassword)
+            msgs.push('Las contraseñas no coinciden.')
+        if (!form.idProvinciaCanton)
+            msgs.push('Seleccioná un cantón.')
+        if (form.telefono.length !== 8 || isNaN(form.telefono))
+            msgs.push('El teléfono debe tener exactamente 8 dígitos.')
+        if (form.identificacion.length !== 9 || isNaN(form.identificacion))
+            msgs.push('La identificación debe tener exactamente 9 dígitos.')
+        return msgs
     }
 
     async function handleSubmit(e) {
         e.preventDefault()
-        setError(null)
+        setErrores([])
 
-        if (form.clave !== form.confirmPassword) {
-            setError('Las contraseñas no coinciden.')
-            return
-        }
-        if (!form.idProvinciaCanton) {
-            setError('Seleccioná un cantón.')
+        const msgsLocales = validar()
+        if (msgsLocales.length > 0) {
+            setErrores(msgsLocales)
+            window.scrollTo({ top: 0, behavior: 'smooth' })
             return
         }
 
@@ -89,11 +107,21 @@ export default function RegistroOferente() {
             setExito(true)
             setTimeout(() => navigate('/login'), 3000)
         } catch (err) {
+            // El backend puede devolver:
+            // 409 → { mensaje: "El correo ya está registrado" }
+            // 400 → { errores: ["campo: mensaje", ...] }
+            // 500 → { mensaje: "Error interno..." }
             if (err.status === 409) {
-                setError('Ese correo ya está registrado.')
+                setErrores(['Ese correo ya está registrado. Intentá con otro.'])
+            } else if (err.body?.errores) {
+                // Errores de validación del backend — los mostramos tal cual
+                setErrores(err.body.errores)
+            } else if (err.body?.mensaje) {
+                setErrores([err.body.mensaje])
             } else {
-                setError('Ocurrió un error al registrar. Intentá de nuevo.')
+                setErrores(['Ocurrió un error al registrar. Revisá los datos e intentá de nuevo.'])
             }
+            window.scrollTo({ top: 0, behavior: 'smooth' })
         } finally {
             setCargando(false)
         }
@@ -106,7 +134,8 @@ export default function RegistroOferente() {
                 <main className="main-container">
                     <div className="register-card">
                         <div className="alert success">
-                            Registro exitoso. Esperá la aprobación del administrador.
+                            <strong>¡Registro exitoso!</strong><br />
+                            Tu cuenta está pendiente de aprobación por el administrador.
                             Serás redirigido al login en unos segundos...
                         </div>
                     </div>
@@ -123,7 +152,17 @@ export default function RegistroOferente() {
                 <div className="register-card">
                     <h1>Registro de Oferente</h1>
 
-                    {error && <div className="alert error">{error}</div>}
+                    {/* Errores — puede haber varios */}
+                    {errores.length > 0 && (
+                        <div className="alert error">
+                            {errores.length === 1
+                                ? errores[0]
+                                : <ul style={{ margin: 0, paddingLeft: 18 }}>
+                                    {errores.map((e, i) => <li key={i}>{e}</li>)}
+                                </ul>
+                            }
+                        </div>
+                    )}
 
                     <form onSubmit={handleSubmit}>
 
@@ -140,13 +179,13 @@ export default function RegistroOferente() {
                         </div>
 
                         <div className="form-group">
-                            <label>Identificación</label>
+                            <label>Identificación (9 dígitos)</label>
                             <input
                                 type="text"
                                 name="identificacion"
                                 value={form.identificacion}
                                 onChange={handleChange}
-                                pattern="[0-9]{9}"
+                                inputMode="numeric"
                                 maxLength="9"
                                 placeholder="Ej: 123456789"
                                 required
@@ -167,12 +206,7 @@ export default function RegistroOferente() {
 
                         <div className="form-group">
                             <label>Nacionalidad</label>
-                            <select
-                                name="idPais"
-                                value={form.idPais}
-                                onChange={handleChange}
-                                required
-                            >
+                            <select name="idPais" value={form.idPais} onChange={handleChange} required>
                                 <option value="">Seleccione su país</option>
                                 {paises.map(p => (
                                     <option key={p.id} value={p.id}>{p.nombre}</option>
@@ -202,12 +236,14 @@ export default function RegistroOferente() {
                                 value={form.idProvinciaCanton}
                                 onChange={handleChange}
                                 required
-                                disabled={cantones.length === 0}
+                                disabled={!form.provinciaId || cargandoCantones}
                             >
                                 <option value="">
-                                    {form.provinciaId
-                                        ? (cantones.length === 0 ? 'Cargando cantones...' : 'Seleccione un cantón')
-                                        : 'Primero seleccioná una provincia'}
+                                    {!form.provinciaId
+                                        ? 'Primero seleccioná una provincia'
+                                        : cargandoCantones
+                                            ? 'Cargando cantones...'
+                                            : 'Seleccione un cantón'}
                                 </option>
                                 {cantones.map(c => (
                                     <option key={c.id} value={c.id}>{c.nombre}</option>
@@ -217,12 +253,7 @@ export default function RegistroOferente() {
 
                         <div className="form-group">
                             <label>Prefijo telefónico</label>
-                            <select
-                                name="idPrefijoTel"
-                                value={form.idPrefijoTel}
-                                onChange={handleChange}
-                                required
-                            >
+                            <select name="idPrefijoTel" value={form.idPrefijoTel} onChange={handleChange} required>
                                 <option value="">Seleccione el prefijo</option>
                                 {prefijos.map(p => (
                                     <option key={p.id} value={p.id}>{p.prefijo}</option>
@@ -231,13 +262,13 @@ export default function RegistroOferente() {
                         </div>
 
                         <div className="form-group">
-                            <label>Teléfono</label>
+                            <label>Teléfono (8 dígitos)</label>
                             <input
-                                type="tel"
+                                type="text"
                                 name="telefono"
                                 value={form.telefono}
                                 onChange={handleChange}
-                                pattern="[0-9]{8}"
+                                inputMode="numeric"
                                 maxLength="8"
                                 placeholder="Ej: 88881234"
                                 required
@@ -251,20 +282,19 @@ export default function RegistroOferente() {
                                 name="correo"
                                 value={form.correo}
                                 onChange={handleChange}
-                                placeholder="Ej: nombre.apellido@correo.com"
+                                placeholder="Ej: nombre@correo.com"
                                 required
                             />
                         </div>
 
                         <div className="form-group">
-                            <label>Contraseña</label>
+                            <label>Contraseña (mínimo 6 caracteres)</label>
                             <input
                                 type="password"
                                 name="clave"
                                 value={form.clave}
                                 onChange={handleChange}
-                                placeholder="Mínimo 6 caracteres"
-                                minLength="6"
+                                placeholder="••••••••"
                                 required
                             />
                         </div>
@@ -276,13 +306,13 @@ export default function RegistroOferente() {
                                 name="confirmPassword"
                                 value={form.confirmPassword}
                                 onChange={handleChange}
-                                placeholder="Repetí la contraseña"
+                                placeholder="••••••••"
                                 required
                             />
                         </div>
 
                         <button type="submit" className="btn btn-primary" disabled={cargando}>
-                            {cargando ? 'Registrando...' : 'Registrar Oferente'}
+                            {cargando ? 'Registrando...' : 'Registrar'}
                         </button>
                     </form>
 

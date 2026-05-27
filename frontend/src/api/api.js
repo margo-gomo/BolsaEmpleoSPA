@@ -6,57 +6,81 @@ function headers(token) {
     return h
 }
 
-// ───── AUTH ─────
+async function manejarRespuesta(res) {
+    if (!res.ok) {
+        const err = new Error('Error en la petición')
+        err.status = res.status
+        try { err.body = await res.json() } catch (_) {}
+        throw err
+    }
+    return res.json()
+}
+
+// AUTH
 export async function login(correo, clave) {
     const res = await fetch(`${BASE}/auth/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ correo, clave })
     })
-    if (!res.ok) throw new Error('Credenciales incorrectas')
-    return res.json() // { token, rol, nombre, id }
+    return manejarRespuesta(res)
 }
 
-// ───── PÚBLICO ─────
+// PÚBLICO
 export async function getPuestosRecientes() {
     const res = await fetch(`${BASE}/publico/puestos-recientes`)
-    return res.json()
+    return manejarRespuesta(res)
 }
 
 export async function getCaracteristicas() {
     const res = await fetch(`${BASE}/publico/caracteristicas`)
-    return res.json()
+    return manejarRespuesta(res)
 }
 
-export async function buscarPuestos(ids, esAND, token) {
+export async function buscarPuestos(ids, esAND, logeado = false, token = null) {
     const params = new URLSearchParams()
     ids.forEach(id => params.append('ids', id))
     params.append('esAND', esAND)
-    if (token) params.append('logeado', 'true')
+    params.append('logeado', logeado)
     const res = await fetch(`${BASE}/publico/buscar-puestos?${params}`, {
         headers: token ? headers(token) : {}
     })
-    return res.json()
+    return manejarRespuesta(res)
 }
 
 export async function getDetallePuesto(id) {
     const res = await fetch(`${BASE}/publico/detalle-puesto/${id}`)
-    return res.json()
+    return manejarRespuesta(res)
 }
 
 export async function getRequisitosPuesto(id) {
     const res = await fetch(`${BASE}/publico/requisitos-puesto/${id}`)
-    return res.json()
+    return manejarRespuesta(res)
 }
 
 export async function getProvincias() {
     const res = await fetch(`${BASE}/publico/provincias`)
-    return res.json()
+    return manejarRespuesta(res)
 }
 
 export async function getCantones(idProvincia) {
     const res = await fetch(`${BASE}/publico/cantones/${idProvincia}`)
-    return res.json()
+    return manejarRespuesta(res)
+}
+
+export async function getPrefijosTel() {
+    const res = await fetch(`${BASE}/publico/prefijos-tel`)
+    return manejarRespuesta(res)
+}
+
+export async function getPaises() {
+    const res = await fetch(`${BASE}/publico/paises`)
+    return manejarRespuesta(res)
+}
+
+export async function getMonedas() {
+    const res = await fetch(`${BASE}/publico/monedas`)
+    return manejarRespuesta(res)
 }
 
 export async function registrarEmpresa(datos) {
@@ -65,8 +89,7 @@ export async function registrarEmpresa(datos) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(datos)
     })
-    if (!res.ok) throw new Error('Error al registrar empresa')
-    return res.json()
+    return manejarRespuesta(res)
 }
 
 export async function registrarOferente(datos) {
@@ -75,41 +98,44 @@ export async function registrarOferente(datos) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(datos)
     })
-    if (!res.ok) throw new Error('Error al registrar oferente')
-    return res.json()
+    return manejarRespuesta(res)
 }
 
-export async function getPrefijosTel() {
-    const res = await fetch(`${BASE}/publico/prefijos-tel`)
-    return res.json()
+// EMPRESA
+export async function getDashboardEmpresa(token) {
+    const res = await fetch(`${BASE}/empresa/dashboard`, { headers: headers(token) })
+    return manejarRespuesta(res)
 }
 
-export async function getPaises() {
-    const res = await fetch(`${BASE}/publico/paises`)
-    return res.json()
+export async function getMisPuestos(token) {
+    const res = await fetch(`${BASE}/empresa/mis-puestos`, { headers: headers(token) })
+    return manejarRespuesta(res)
 }
 
-export async function getMonedas() {
-    const res = await fetch(`${BASE}/publico/monedas`)
-    return res.json()
-}
-
-// ───── EMPRESA ─────
 export async function publicarPuesto(datos, token) {
     const res = await fetch(`${BASE}/empresa/publicar-puesto`, {
         method: 'POST',
         headers: headers(token),
         body: JSON.stringify(datos)
     })
-    if (!res.ok) throw new Error('Error al publicar puesto')
-    return res.json()
+    return manejarRespuesta(res)
 }
 
-export async function getMisPuestos(token) {
-    const res = await fetch(`${BASE}/empresa/mis-puestos`, {
+export async function agregarRequisito(idPuesto, datos, token) {
+    const res = await fetch(`${BASE}/empresa/requisitos-puesto/${idPuesto}`, {
+        method: 'POST',
+        headers: headers(token),
+        body: JSON.stringify(datos)
+    })
+    return manejarRespuesta(res)
+}
+
+export async function eliminarRequisito(idPuesto, idCarac, token) {
+    const res = await fetch(`${BASE}/empresa/requisitos-puesto/${idPuesto}/${idCarac}`, {
+        method: 'DELETE',
         headers: headers(token)
     })
-    return res.json()
+    return manejarRespuesta(res)
 }
 
 export async function desactivarPuesto(id, token) {
@@ -117,8 +143,7 @@ export async function desactivarPuesto(id, token) {
         method: 'PUT',
         headers: headers(token)
     })
-    if (!res.ok) throw new Error('Error al desactivar puesto')
-    return res.json()
+    return manejarRespuesta(res)
 }
 
 export async function activarPuesto(id, token) {
@@ -126,51 +151,23 @@ export async function activarPuesto(id, token) {
         method: 'PUT',
         headers: headers(token)
     })
-    if (!res.ok) throw new Error('Error al activar puesto')
-    return res.json()
+    return manejarRespuesta(res)
 }
 
-export async function agregarRequisito(puestoId, datos, token) {
-    const res = await fetch(`${BASE}/empresa/requisitos-puesto/${puestoId}`, {
-        method: 'POST',
-        headers: headers(token),
-        body: JSON.stringify(datos)
-    })
-    if (!res.ok) throw new Error('Error al agregar requisito')
-    return res.json()
-}
-
-// DELETE /api/empresa/requisitos-puesto/{idPuesto}/{idCarac}
-export async function eliminarRequisito(idPuesto, idCarac, token) {
-    const res = await fetch(`${BASE}/empresa/requisitos-puesto/${idPuesto}/${idCarac}`, {
-        method: 'DELETE',
-        headers: headers(token)
-    })
-    if (!res.ok) throw new Error('Error al eliminar requisito')
-    return res.json()
-}
-
-// GET /api/empresa/buscar-candidatos?puestoId=5
 export async function buscarCandidatos(puestoId, token) {
     const res = await fetch(`${BASE}/empresa/buscar-candidatos?puestoId=${puestoId}`, {
         headers: headers(token)
     })
-    return res.json()
+    return manejarRespuesta(res)
 }
 
 export async function getDetalleCandidato(id, token) {
     const res = await fetch(`${BASE}/empresa/detalle-candidato/${id}`, {
         headers: headers(token)
     })
-    return res.json()
+    return manejarRespuesta(res)
 }
 
-// GET /api/empresa/cv-candidato/{id} — devuelve PDF binario, se abre en nueva pestaña
-export function getCvCandidatoUrl(id) {
-    return `${BASE}/empresa/cv-candidato/${id}`
-}
-
-// Para descargar con token: usa fetch y crea un object URL
 export async function verCvCandidato(id, token) {
     const res = await fetch(`${BASE}/empresa/cv-candidato/${id}`, {
         headers: { 'Authorization': `Bearer ${token}` }
@@ -181,20 +178,22 @@ export async function verCvCandidato(id, token) {
     window.open(url, '_blank')
 }
 
-// GET /api/empresa/solicitantes/{idPuesto}
 export async function getSolicitantes(idPuesto, token) {
     const res = await fetch(`${BASE}/empresa/solicitantes/${idPuesto}`, {
         headers: headers(token)
     })
-    return res.json()
+    return manejarRespuesta(res)
 }
 
-// ───── OFERENTE ─────
+// OFERENTE
+export async function getDashboardOferente(token) {
+    const res = await fetch(`${BASE}/oferente/dashboard`, { headers: headers(token) })
+    return manejarRespuesta(res)
+}
+
 export async function getHabilidades(token) {
-    const res = await fetch(`${BASE}/oferente/habilidades`, {
-        headers: headers(token)
-    })
-    return res.json()
+    const res = await fetch(`${BASE}/oferente/habilidades`, { headers: headers(token) })
+    return manejarRespuesta(res)
 }
 
 export async function guardarHabilidad(datos, token) {
@@ -203,18 +202,15 @@ export async function guardarHabilidad(datos, token) {
         headers: headers(token),
         body: JSON.stringify(datos)
     })
-    if (!res.ok) throw new Error('Error al guardar habilidad')
-    return res.json()
+    return manejarRespuesta(res)
 }
 
-// DELETE /api/oferente/habilidades/{idCaracteristica}
 export async function eliminarHabilidad(idCaracteristica, token) {
     const res = await fetch(`${BASE}/oferente/habilidades/${idCaracteristica}`, {
         method: 'DELETE',
         headers: headers(token)
     })
-    if (!res.ok) throw new Error('Error al eliminar habilidad')
-    return res.json()
+    return manejarRespuesta(res)
 }
 
 export async function subirCV(archivo, token) {
@@ -222,37 +218,29 @@ export async function subirCV(archivo, token) {
     formData.append('archivo', archivo)
     const res = await fetch(`${BASE}/oferente/cv`, {
         method: 'POST',
-        headers: { 'Authorization': `Bearer ${token}` }, // sin Content-Type, FormData lo pone solo
+        headers: { 'Authorization': `Bearer ${token}` },
         body: formData
     })
-    if (!res.ok) throw new Error('Error al subir CV')
-    return res.json()
+    return manejarRespuesta(res)
 }
 
-// POST /api/oferente/solicitar-puesto/{idPuesto}
 export async function solicitarPuesto(idPuesto, token) {
     const res = await fetch(`${BASE}/oferente/solicitar-puesto/${idPuesto}`, {
         method: 'POST',
         headers: headers(token)
     })
-    if (!res.ok) throw new Error('Error al solicitar puesto')
-    return res.json()
+    return manejarRespuesta(res)
 }
 
-// GET /api/oferente/mis-solicitudes
 export async function getMisSolicitudes(token) {
-    const res = await fetch(`${BASE}/oferente/mis-solicitudes`, {
-        headers: headers(token)
-    })
-    return res.json()
+    const res = await fetch(`${BASE}/oferente/mis-solicitudes`, { headers: headers(token) })
+    return manejarRespuesta(res)
 }
 
-// ───── ADMIN ─────
+// ADMIN
 export async function getEmpresasPendientes(token) {
-    const res = await fetch(`${BASE}/admin/empresas-pendientes`, {
-        headers: headers(token)
-    })
-    return res.json()
+    const res = await fetch(`${BASE}/admin/empresas-pendientes`, { headers: headers(token) })
+    return manejarRespuesta(res)
 }
 
 export async function autorizarEmpresa(id, token) {
@@ -260,15 +248,12 @@ export async function autorizarEmpresa(id, token) {
         method: 'PUT',
         headers: headers(token)
     })
-    if (!res.ok) throw new Error('Error al autorizar empresa')
-    return res.json()
+    return manejarRespuesta(res)
 }
 
 export async function getOferentesPendientes(token) {
-    const res = await fetch(`${BASE}/admin/oferentes-pendientes`, {
-        headers: headers(token)
-    })
-    return res.json()
+    const res = await fetch(`${BASE}/admin/oferentes-pendientes`, { headers: headers(token) })
+    return manejarRespuesta(res)
 }
 
 export async function autorizarOferente(id, token) {
@@ -276,15 +261,12 @@ export async function autorizarOferente(id, token) {
         method: 'PUT',
         headers: headers(token)
     })
-    if (!res.ok) throw new Error('Error al autorizar oferente')
-    return res.json()
+    return manejarRespuesta(res)
 }
 
 export async function getCaracteristicasAdmin(token) {
-    const res = await fetch(`${BASE}/admin/caracteristicas`, {
-        headers: headers(token)
-    })
-    return res.json()
+    const res = await fetch(`${BASE}/admin/caracteristicas`, { headers: headers(token) })
+    return manejarRespuesta(res)
 }
 
 export async function crearCaracteristica(datos, token) {
@@ -293,8 +275,7 @@ export async function crearCaracteristica(datos, token) {
         headers: headers(token),
         body: JSON.stringify(datos)
     })
-    if (!res.ok) throw new Error('Error al crear característica')
-    return res.json()
+    return manejarRespuesta(res)
 }
 
 export async function descargarReporteMeses(meses, todosMeses, token) {
@@ -304,7 +285,7 @@ export async function descargarReporteMeses(meses, todosMeses, token) {
     } else {
         meses.forEach(m => params.append('meses', m))
     }
-    const res = await fetch(`/api/admin/reporte-meses?${params}`, {
+    const res = await fetch(`${BASE}/admin/reporte-meses?${params}`, {
         headers: { 'Authorization': `Bearer ${token}` }
     })
     if (!res.ok) throw new Error('Error al generar reporte')
@@ -314,7 +295,7 @@ export async function descargarReporteMeses(meses, todosMeses, token) {
 }
 
 export async function descargarReporteSalarios(token) {
-    const res = await fetch(`/api/admin/reporte-salarios`, {
+    const res = await fetch(`${BASE}/admin/reporte-salarios`, {
         headers: { 'Authorization': `Bearer ${token}` }
     })
     if (!res.ok) throw new Error('Error al generar reporte')

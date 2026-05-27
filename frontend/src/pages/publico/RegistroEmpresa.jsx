@@ -21,7 +21,7 @@ export default function RegistroEmpresa() {
     const [localizaciones, setLocalizaciones] = useState([])
     const [prefijos, setPrefijos] = useState([])
 
-    const [error, setError] = useState(null)
+    const [errores, setErrores] = useState([])
     const [exito, setExito] = useState(false)
     const [cargando, setCargando] = useState(false)
 
@@ -35,12 +35,25 @@ export default function RegistroEmpresa() {
         setForm(prev => ({ ...prev, [name]: value }))
     }
 
+    function validar() {
+        const msgs = []
+        if (form.clave !== form.confirmPassword)
+            msgs.push('Las contraseñas no coinciden.')
+        if (form.clave.length < 6)
+            msgs.push('La contraseña debe tener al menos 6 caracteres.')
+        if (form.telefono.length !== 8 || isNaN(form.telefono))
+            msgs.push('El teléfono debe tener exactamente 8 dígitos.')
+        return msgs
+    }
+
     async function handleSubmit(e) {
         e.preventDefault()
-        setError(null)
+        setErrores([])
 
-        if (form.clave !== form.confirmPassword) {
-            setError('Las contraseñas no coinciden.')
+        const msgsLocales = validar()
+        if (msgsLocales.length > 0) {
+            setErrores(msgsLocales)
+            window.scrollTo({ top: 0, behavior: 'smooth' })
             return
         }
 
@@ -59,10 +72,15 @@ export default function RegistroEmpresa() {
             setTimeout(() => navigate('/login'), 3000)
         } catch (err) {
             if (err.status === 409) {
-                setError('Ese correo ya está registrado.')
+                setErrores(['Ese correo ya está registrado. Intentá con otro.'])
+            } else if (err.body?.errores) {
+                setErrores(err.body.errores)
+            } else if (err.body?.mensaje) {
+                setErrores([err.body.mensaje])
             } else {
-                setError('Ocurrió un error al registrar la empresa. Intentá de nuevo.')
+                setErrores(['Ocurrió un error al registrar la empresa. Revisá los datos e intentá de nuevo.'])
             }
+            window.scrollTo({ top: 0, behavior: 'smooth' })
         } finally {
             setCargando(false)
         }
@@ -75,7 +93,8 @@ export default function RegistroEmpresa() {
                 <main className="main-container">
                     <div className="register-card">
                         <div className="alert success">
-                            Registro exitoso. Esperá la aprobación del administrador.
+                            <strong>¡Registro exitoso!</strong><br />
+                            Tu cuenta está pendiente de aprobación por el administrador.
                             Serás redirigido al login en unos segundos...
                         </div>
                     </div>
@@ -92,7 +111,16 @@ export default function RegistroEmpresa() {
                 <div className="register-card">
                     <h1>Registro de Empresa</h1>
 
-                    {error && <div className="alert error">{error}</div>}
+                    {errores.length > 0 && (
+                        <div className="alert error">
+                            {errores.length === 1
+                                ? errores[0]
+                                : <ul style={{ margin: 0, paddingLeft: 18 }}>
+                                    {errores.map((e, i) => <li key={i}>{e}</li>)}
+                                </ul>
+                            }
+                        </div>
+                    )}
 
                     <form onSubmit={handleSubmit}>
 
@@ -139,13 +167,13 @@ export default function RegistroEmpresa() {
                         </div>
 
                         <div className="form-group">
-                            <label>Teléfono</label>
+                            <label>Teléfono (8 dígitos)</label>
                             <input
-                                type="tel"
+                                type="text"
                                 name="telefono"
                                 value={form.telefono}
                                 onChange={handleChange}
-                                pattern="[0-9]{8}"
+                                inputMode="numeric"
                                 maxLength="8"
                                 placeholder="Ej: 88881234"
                                 required
@@ -172,18 +200,17 @@ export default function RegistroEmpresa() {
                                 onChange={handleChange}
                                 rows="4"
                                 placeholder="Describí brevemente la empresa"
-                                required
                             />
                         </div>
 
                         <div className="form-group">
-                            <label>Contraseña</label>
+                            <label>Contraseña (mínimo 6 caracteres)</label>
                             <input
                                 type="password"
                                 name="clave"
                                 value={form.clave}
                                 onChange={handleChange}
-                                placeholder="Ingresá una contraseña"
+                                placeholder="••••••••"
                                 required
                             />
                         </div>
@@ -195,7 +222,7 @@ export default function RegistroEmpresa() {
                                 name="confirmPassword"
                                 value={form.confirmPassword}
                                 onChange={handleChange}
-                                placeholder="Repetí la contraseña"
+                                placeholder="••••••••"
                                 required
                             />
                         </div>
