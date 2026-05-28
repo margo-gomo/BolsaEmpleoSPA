@@ -51,9 +51,9 @@ export default function App() {
                     {/* Empresa */}
                     <Route path="/empresa/dashboard" element={<RutaProtegida rol="Empresa"><EmpresaDashboard /></RutaProtegida>} />
                     <Route path="/empresa/publicar-puesto" element={<RutaProtegida rol="Empresa"><PublicarPuesto /></RutaProtegida>} />
-                    <Route path="/empresa/requisitos-puesto/:id" element={<RutaProtegida rol="Empresa"><RequisitosPuesto /></RutaProtegida>} />
+                    <Route path="/empresa/requisitos-puesto/:puestoId" element={<RutaProtegida rol="Empresa"><RequisitosPuesto /></RutaProtegida>} />
                     <Route path="/empresa/mis-puestos" element={<RutaProtegida rol="Empresa"><MisPuestos /></RutaProtegida>} />
-                    <Route path="/empresa/buscar-candidatos" element={<RutaProtegida rol="Empresa"><BuscarCandidatos /></RutaProtegida>} />
+                    <Route path="/empresa/buscar-candidatos/:puestoId" element={<RutaProtegida rol="Empresa"><BuscarCandidatos /></RutaProtegida>} />
                     <Route path="/empresa/detalle-candidato/:id" element={<RutaProtegida rol="Empresa"><DetalleCandidato /></RutaProtegida>} />
 
                     {/* Oferente */}
