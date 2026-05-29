@@ -1,8 +1,7 @@
 package com.example.backend.presentation.auth;
 
-import com.example.backend.data.EmpresaRepository;
-import com.example.backend.data.OferenteRepository;
 import com.example.backend.logic.Usuario;
+import com.example.backend.logic.Service_BolsaEmpleo;
 import com.example.backend.security.JwtService;
 import com.example.backend.security.UserDetailsImpl;
 import jakarta.validation.Valid;
@@ -11,7 +10,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
-import org.springframework.security.authentication.DisabledException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
@@ -27,14 +25,18 @@ public class AuthController {
     private JwtService jwtService;
 
     @Autowired
-    private EmpresaRepository empresaRepository;
-
-    @Autowired
-    private OferenteRepository oferenteRepository;
+    private Service_BolsaEmpleo service_BolsaEmpleo;
 
     @PostMapping("/login")
     public ResponseEntity<?> login(@Valid @RequestBody LoginRequest request) {
         try {
+            Usuario new_usuario= service_BolsaEmpleo.getUsuarioByCorreo(request.correo());
+            if (new_usuario != null &&
+                    !"Sí".equalsIgnoreCase(new_usuario.getAutorizado()) &&
+                    !"Si".equalsIgnoreCase(new_usuario.getAutorizado())) {
+                return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                        .body(new ErrorResponse("Tu cuenta está pendiente de aprobación por el administrador"));
+            }
             // Spring Security valida correo + clave y llama al UserDetailsServiceImpl
             Authentication auth = authenticationManager.authenticate(
                     new UsernamePasswordAuthenticationToken(
@@ -50,10 +52,8 @@ public class AuthController {
 
             // Buscar el nombre según el rol
             String nombre = switch (usuario.getTipoUsuario()) {
-                case "Empresa" -> empresaRepository.findById(usuario.getId())
-                        .map(e -> e.getNombre()).orElse("Empresa");
-                case "Oferente" -> oferenteRepository.findById(usuario.getId())
-                        .map(o -> o.getNombre()).orElse("Oferente");
+                case "Empresa" -> service_BolsaEmpleo.getEmpresa(usuario.getId()).getNombre();
+                case "Oferente" -> service_BolsaEmpleo.getOferente(usuario.getId()).getNombre();
                 default -> "Administrador";
             };
 
@@ -63,11 +63,6 @@ public class AuthController {
                     nombre,
                     usuario.getId()
             ));
-
-        } catch (DisabledException e) {
-            // Usuario existe pero no está autorizado por el admin
-            return ResponseEntity.status(HttpStatus.FORBIDDEN)
-                    .body(new ErrorResponse("Tu cuenta está pendiente de aprobación por el administrador"));
 
         } catch (BadCredentialsException e) {
             // Correo o clave incorrectos
