@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useAuth } from '../../context/AuthContext'
 import { getOferentesPendientes, autorizarOferente } from '../../api/api'
-import Navbar from "../../components/Navbar.jsx";
+
 import Navbar from '../../components/Navbar'
 import Footer from '../../components/Footer'
 

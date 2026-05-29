@@ -3,7 +3,6 @@ import { useAuth } from '../../context/AuthContext'
 import { getCaracteristicasAdmin, crearCaracteristica } from '../../api/api'
 import Navbar from '../../components/Navbar'
 import Footer from '../../components/Footer'
-import Navbar from "../../components/Navbar.jsx";
 
 export default function Caracteristicas() {
     const { token } = useAuth()

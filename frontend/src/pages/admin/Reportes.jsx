@@ -1,7 +1,6 @@
 import { useState } from 'react'
 import { useAuth } from '../../context/AuthContext'
 import { descargarReporteMeses, descargarReporteSalarios } from '../../api/api'
-import Navbar from "../../components/Navbar.jsx";
 import Navbar from '../../components/Navbar'
 import Footer from '../../components/Footer'
 const MESES = [
