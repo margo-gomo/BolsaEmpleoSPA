@@ -36,19 +36,25 @@ body {
     flex-direction: column;
 }
 
-main {
+/* Todo main y page-container crece para empujar el footer */
+main,
+.main-container {
     flex: 1;
 }
 
+/* page-container vive DENTRO de main, no necesita flex:1
+   pero sí necesita min-height para empujar el footer en páginas con poco contenido */
+.page-container {
+    width: 92%;
+    max-width: 1180px;
+    margin: 0 auto;
+    padding: 10px 0 40px;
+    min-height: calc(100vh - 220px);
+}
+
 @keyframes fadeIn {
-    from {
-        opacity: 0;
-        transform: translateY(10px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
+    from { opacity: 0; transform: translateY(10px); }
+    to   { opacity: 1; transform: translateY(0); }
 }
 
 /* ----- Botones ----- */
@@ -118,6 +124,16 @@ main {
     border-radius: 999px;
 }
 
+.btn-success {
+    background: #22a35a;
+    color: #ffffff;
+    border: 1px solid #1b8b4b;
+}
+
+.btn-success:hover {
+    background: #1b8b4b;
+}
+
 /* ----- Formularios ----- */
 
 input, select, textarea {
@@ -128,6 +144,18 @@ input, select, textarea {
     background: #fbfdff;
     transition: all 0.25s ease;
     color: var(--text);
+    width: 100%;
+}
+
+/* Checkboxes y radios no deben heredar width:100% ni padding */
+input[type="checkbox"],
+input[type="radio"] {
+    width: auto;
+    padding: 0;
+    border: none;
+    background: none;
+    box-shadow: none;
+    flex-shrink: 0;
 }
 
 input::placeholder,
@@ -161,6 +189,36 @@ label {
     margin-bottom: 17px;
     display: flex;
     flex-direction: column;
+}
+
+/* Campo contraseña con botón mostrar */
+.password-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.password-wrapper input {
+    padding-right: 46px;
+}
+
+.password-toggle {
+    position: absolute;
+    right: 12px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 4px;
+    color: var(--text-soft);
+    font-size: 18px;
+    line-height: 1;
+    display: flex;
+    align-items: center;
+    width: auto;
+}
+
+.password-toggle:hover {
+    color: var(--primary);
 }
 
 .form-text {
@@ -223,20 +281,13 @@ label {
 }
 
 .main-container {
-    flex: 1;
     display: flex;
     justify-content: center;
     align-items: center;
     padding: 56px 20px;
 }
 
-.page-container {
-    width: 92%;
-    max-width: 1180px;
-    margin: 0 auto;
-    padding: 10px 0 40px;
-    flex: 1;
-}
+/* page-container definido arriba */
 
 .page-header {
     margin: 20px 0 24px;
@@ -301,6 +352,34 @@ label {
     border-bottom: none;
 }
 
+/* ----- Alerts ----- */
+
+.alert {
+    padding: 12px 14px;
+    border-radius: 10px;
+    margin-bottom: 16px;
+    font-size: 14px;
+    font-weight: 500;
+}
+
+.alert.success {
+    background: #eafaf1;
+    color: #1e7e34;
+    border: 1px solid #b7ebc6;
+}
+
+.alert.warning {
+    background: #fff8e6;
+    color: #9a6700;
+    border: 1px solid #f2d38b;
+}
+
+.alert.error {
+    background: #fdecec;
+    color: #b42318;
+    border: 1px solid #f5b5b5;
+}
+
 /* ============================================================
    LAYOUT — Navbar y Footer
    ============================================================ */
@@ -339,10 +418,6 @@ label {
     color: inherit;
 }
 
-.logo a:hover {
-    text-decoration: none;
-}
-
 .logo h2 {
     color: var(--primary);
     font-weight: 800;
@@ -365,6 +440,7 @@ label {
     padding: 10px 18px;
     border-radius: 999px;
     transition: all 0.25s ease;
+    width: auto;
 }
 
 .nav-links a:hover {
@@ -372,7 +448,7 @@ label {
     color: var(--primary);
 }
 
-.nav-links .active {
+.nav-links a.active {
     background: linear-gradient(135deg, var(--primary), var(--primary-2));
     color: white !important;
     box-shadow: 0 6px 18px rgba(76, 95, 255, 0.25);
@@ -413,50 +489,10 @@ label {
     margin-top: 4px;
 }
 
-.nav-links-hidden {
-    display: none !important;
-}
-
-/* ----- Navbar Admin ----- */
+/* ----- Navbar Admin (más ancho) ----- */
 
 .nav-container-admin {
     max-width: 1380px;
-    gap: 18px;
-    align-items: center;
-}
-
-.nav-admin-wrapper {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 18px;
-    flex: 1;
-    min-width: 0;
-}
-
-.nav-links-admin {
-    display: flex;
-    align-items: center;
-    justify-content: flex-end;
-    gap: 4px;
-    flex: 1;
-    flex-wrap: wrap;
-    min-width: 0;
-}
-
-.nav-links-admin a {
-    font-size: 13px;
-    padding: 9px 14px;
-    white-space: nowrap;
-}
-
-.nav-user-block {
-    display: flex;
-    align-items: center;
-    gap: 14px;
-    padding-left: 8px;
-    flex-shrink: 0;
-    white-space: nowrap;
 }
 
 .nav-user-email {
@@ -468,24 +504,13 @@ label {
 }
 
 .nav-logout-link {
-    text-decoration: none;
-    color: var(--text-soft);
-    font-size: 13px;
-    font-weight: 600;
-    padding: 9px 14px;
-    border-radius: 999px;
-    transition: all 0.25s ease;
-}
-
-.nav-logout-link:hover {
-    background: var(--bg-soft);
-    color: var(--primary);
+    width: auto !important;
 }
 
 /* ----- Footer ----- */
 
 .footer {
-    margin-top: 18px;
+    margin-top: auto;
     padding: 26px 0 20px;
     position: relative;
     overflow: hidden;
@@ -526,8 +551,6 @@ label {
 /* ============================================================
    PUBLIC — Inicio, Login, Registro, Buscar puestos
    ============================================================ */
-
-/* ----- Login y Registro ----- */
 
 .login-card,
 .register-card {
@@ -606,7 +629,7 @@ label {
     color: var(--text-soft);
 }
 
-/* ----- Página de Inicio ----- */
+/* ----- Inicio ----- */
 
 .home-main {
     flex: 1;
@@ -618,7 +641,6 @@ label {
     grid-template-columns: 440px 1fr;
     gap: 34px;
     align-items: start;
-    min-height: auto;
 }
 
 .home-hero {
@@ -691,18 +713,6 @@ label {
     grid-template-columns: repeat(2, minmax(220px, 1fr));
     gap: 18px;
     align-content: start;
-}
-
-.jobs-container:empty::before {
-    content: "Todavía no hay puestos publicados.";
-    display: block;
-    grid-column: 1 / -1;
-    padding: 18px;
-    border: 1px dashed #cfe0ff;
-    border-radius: 16px;
-    background: #f8fbff;
-    color: var(--text-soft);
-    font-size: 15px;
 }
 
 .job-card {
@@ -779,13 +789,7 @@ label {
     line-height: 1.35;
 }
 
-/* ----- Buscar puestos (árbol y resultados) ----- */
-
-.buscar-layout {
-    display: grid;
-    grid-template-columns: 1fr;
-    gap: 18px;
-}
+/* ----- Buscar puestos ----- */
 
 .buscar-panel {
     background: var(--card);
@@ -822,37 +826,6 @@ label {
     border: 1px solid var(--border);
     border-radius: 12px;
     padding: 14px;
-    max-width: 420px;
-}
-
-.buscar-tree-level {
-    list-style: none;
-    margin: 0;
-    padding-left: 0;
-}
-
-.buscar-tree-level > li {
-    margin-bottom: 10px;
-}
-
-.buscar-tree,
-.buscar-subtree {
-    list-style: none;
-    margin: 0;
-    padding-left: 0;
-}
-
-.buscar-tree > li {
-    margin-bottom: 10px;
-}
-
-.buscar-subtree {
-    margin-top: 6px;
-    margin-left: 22px;
-}
-
-.buscar-subtree li {
-    margin-bottom: 6px;
 }
 
 .tree-option {
@@ -862,12 +835,9 @@ label {
     padding: 4px 0;
     color: var(--text);
     font-size: 14px;
-    cursor: pointer;
 }
 
-.tree-option input {
-    margin: 0;
-}
+
 
 .modo-coincidencia p {
     font-weight: 600;
@@ -875,16 +845,10 @@ label {
     color: var(--text);
 }
 
-/* ----- Resultados de búsqueda ----- */
-
 .resultados-lista {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
     gap: 16px;
-}
-
-.resultados-panel {
-    padding-top: 16px;
 }
 
 .resultado-card {
@@ -942,44 +906,8 @@ label {
     margin-top: 12px;
 }
 
-.result-card .actions-section {
-    margin-top: 12px;
-}
-
-.result-card form {
-    margin: 0;
-}
-
-/* ----- Alerts ----- */
-
-.alert {
-    padding: 12px 14px;
-    border-radius: 10px;
-    margin-bottom: 16px;
-    font-size: 14px;
-    font-weight: 500;
-}
-
-.alert.success {
-    background: #eafaf1;
-    color: #1e7e34;
-    border: 1px solid #b7ebc6;
-}
-
-.alert.warning {
-    background: #fff8e6;
-    color: #9a6700;
-    border: 1px solid #f2d38b;
-}
-
-.alert.error {
-    background: #fdecec;
-    color: #b42318;
-    border: 1px solid #f5b5b5;
-}
-
 /* ============================================================
-   EMPRESA / OFERENTE — Dashboards, habilidades, CV, puestos
+   EMPRESA / OFERENTE
    ============================================================ */
 
 .dashboard-stats {
@@ -1008,8 +936,6 @@ label {
     font-weight: 800;
     color: var(--primary);
 }
-
-/* ----- Skills / Habilidades ----- */
 
 .skills-page-header {
     margin: 8px 0 18px;
@@ -1092,8 +1018,6 @@ label {
     text-align: center;
 }
 
-/* ----- Ruta / breadcrumb de característica ----- */
-
 .ruta-box {
     margin-bottom: 16px;
     padding: 12px 14px;
@@ -1130,8 +1054,6 @@ label {
     flex-wrap: wrap;
     gap: 8px;
 }
-
-/* ----- CV ----- */
 
 .cv-layout {
     display: grid;
@@ -1179,7 +1101,7 @@ label {
 }
 
 /* ============================================================
-   ADMIN — Características, tablas, reportes
+   ADMIN
    ============================================================ */
 
 .admin-page-container {
@@ -1241,18 +1163,6 @@ label {
     margin: 0;
 }
 
-.btn-success {
-    background: #22a35a;
-    color: #ffffff;
-    border: 1px solid #1b8b4b;
-}
-
-.btn-success:hover {
-    background: #1b8b4b;
-}
-
-/* ----- Características ----- */
-
 .admin-caracteristicas-layout {
     display: grid;
     grid-template-columns: 1.3fr 0.9fr;
@@ -1296,8 +1206,6 @@ label {
     width: 100%;
     padding: 12px;
 }
-
-/* ----- Reportes ----- */
 
 .admin-reportes-layout {
     display: grid;
@@ -1377,7 +1285,6 @@ label {
     .skills-layout-habilidades {
         grid-template-columns: 1fr;
     }
-
     .skills-panel-wide,
     .skills-panel-form {
         min-height: auto;
@@ -1385,93 +1292,34 @@ label {
 }
 
 @media (max-width: 992px) {
-    .skills-layout {
-        grid-template-columns: 1fr;
-    }
-
-    .dashboard-stats {
-        grid-template-columns: 1fr;
-    }
-
-    .cv-layout {
-        grid-template-columns: 1fr;
-    }
-
+    .skills-layout,
+    .cv-layout,
     .admin-caracteristicas-layout {
         grid-template-columns: 1fr;
     }
-
-    .nav-admin-wrapper {
-        width: 100%;
-        flex-direction: column;
-        align-items: stretch;
-        gap: 12px;
+    .dashboard-stats {
+        grid-template-columns: 1fr;
     }
-
-    .nav-links-admin {
-        width: 100%;
-        justify-content: center;
-    }
-
-    .nav-user-block {
-        justify-content: center;
-        padding-left: 0;
-        flex-wrap: wrap;
-    }
-
     .nav-container-admin {
         position: relative;
         flex-wrap: wrap;
         gap: 12px;
         border-radius: 24px;
         padding: 14px 18px;
-        align-items: center;
     }
-
-    .nav-container-admin .logo {
-        flex: 1;
-    }
-
     .nav-container-admin .nav-toggle-label {
         display: flex;
     }
-
-    .nav-container-admin .nav-links-admin {
+    .nav-container-admin .nav-links {
         display: none;
         width: 100%;
         flex-direction: column;
         align-items: stretch;
         gap: 8px;
         padding-top: 6px;
-        justify-content: flex-start;
     }
-
-    .nav-container-admin .nav-links-admin.open {
+    .nav-container-admin .nav-links.open {
         display: flex;
-    }
-
-    .nav-container-admin .nav-links-admin a {
-        display: block;
-        width: 100%;
-        text-align: center;
-        padding: 12px 16px;
-        font-size: 14px;
-    }
-
-    .nav-container-admin .nav-links-admin .nav-user-email {
-        display: block;
-        width: 100%;
-        text-align: center;
-        padding: 12px 16px 4px;
-        font-size: 14px;
-    }
-
-    .nav-container-admin .nav-links-admin .nav-logout-link {
-        display: block;
-        width: 100%;
-        text-align: center;
-        padding: 12px 16px;
-        font-size: 14px;
     }
 }
 
@@ -1481,12 +1329,10 @@ label {
         gap: 22px;
         padding: 20px 0 34px;
     }
-
     .home-card,
     .recent-jobs {
         min-height: auto;
     }
-
     .jobs-container {
         grid-template-columns: repeat(2, minmax(200px, 1fr));
     }
@@ -1496,7 +1342,6 @@ label {
     .navbar {
         padding: 16px 0;
     }
-
     .nav-container {
         position: relative;
         flex-wrap: wrap;
@@ -1505,15 +1350,12 @@ label {
         padding: 14px 18px;
         align-items: center;
     }
-
     .logo {
         flex: 1;
     }
-
     .nav-toggle-label {
         display: flex;
     }
-
     .nav-links {
         display: none;
         width: 100%;
@@ -1522,46 +1364,37 @@ label {
         gap: 8px;
         padding-top: 6px;
     }
-
     .nav-links.open {
         display: flex;
     }
-
     .nav-links a {
         display: block;
         width: 100%;
         text-align: center;
         padding: 12px 16px;
     }
-
     .footer-container {
         flex-direction: column;
         text-align: center;
     }
-
     .login-card,
     .register-card {
         padding: 30px 22px;
     }
-
     .login-card h1,
     .register-card h1 {
         font-size: 24px;
     }
-
     .admin-header h1 {
         font-size: 1.8rem;
     }
-
     .admin-dashboard-actions {
         flex-direction: column;
     }
-
     .admin-dashboard-actions .btn {
         width: 100%;
         min-width: unset;
     }
-
     .admin-table-card {
         padding: 14px;
     }
@@ -1572,29 +1405,23 @@ label {
         width: 94%;
         padding: 18px 0 28px;
     }
-
     .home-card {
         padding: 30px 22px;
     }
-
     .home-card h1 {
         font-size: 1.9rem;
         text-align: center;
     }
-
     .home-card p {
         text-align: center;
     }
-
     .recent-jobs {
         padding: 22px 18px;
     }
-
     .recent-jobs h2 {
         font-size: 1.7rem;
         text-align: center;
     }
-
     .jobs-container {
         grid-template-columns: 1fr;
     }

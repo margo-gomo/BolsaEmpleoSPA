@@ -6,30 +6,54 @@ function Nodo({ nodo, seleccionadas, onToggle, nivel = 0 }) {
 
     return (
         <div style={{ marginLeft: nivel * 16 }}>
-            <div className="arbol-nodo">
-                {tieneHijos && (
-                    <button
-                        type="button"
-                        className="arbol-toggle"
-                        onClick={() => setExpandido(!expandido)}
-                    >
-                        {expandido ? '▼' : '▶'}
-                    </button>
-                )}
-                {!tieneHijos && (
-                    <label className="arbol-hoja">
-                        <input
-                            type="checkbox"
-                            checked={seleccionadas.includes(nodo.id)}
-                            onChange={() => onToggle(nodo.id)}
-                        />
-                        <span>{nodo.nombre}</span>
+            <div className="tree-option">
+
+                {/* Checkbox para TODOS los nodos, tengan o no hijos */}
+                <input
+                    type="checkbox"
+                    checked={seleccionadas.includes(nodo.id)}
+                    onChange={() => onToggle(nodo.id)}
+                    id={`nodo-${nodo.id}`}
+                />
+
+                {/* Si tiene hijos: botón expandir + label clicable */}
+                {tieneHijos ? (
+                    <>
+                        <label
+                            htmlFor={`nodo-${nodo.id}`}
+                            style={{ cursor: 'pointer', fontWeight: 600, userSelect: 'none' }}
+                        >
+                            {nodo.nombre}
+                        </label>
+                        <button
+                            type="button"
+                            onClick={() => setExpandido(!expandido)}
+                            style={{
+                                background: 'none',
+                                border: 'none',
+                                cursor: 'pointer',
+                                padding: '0 4px',
+                                fontSize: 13,
+                                color: 'var(--primary)',
+                                fontWeight: 700,
+                                lineHeight: 1,
+                            }}
+                            title={expandido ? 'Colapsar' : 'Expandir'}
+                        >
+                            {expandido ? '−' : '+'}
+                        </button>
+                    </>
+                ) : (
+                    /* Sin hijos: solo label */
+                    <label htmlFor={`nodo-${nodo.id}`} style={{ cursor: 'pointer', userSelect: 'none' }}>
+                        {nodo.nombre}
                     </label>
                 )}
-                {tieneHijos && <span className="arbol-categoria">{nodo.nombre}</span>}
             </div>
+
+            {/* Hijos — solo si está expandido */}
             {tieneHijos && expandido && (
-                <div className="arbol-hijos">
+                <div style={{ marginLeft: 16 }}>
                     {nodo.hijas.map(h => (
                         <Nodo
                             key={h.id}

@@ -4,6 +4,7 @@ import { useAuth } from '../../context/AuthContext'
 import { login as loginApi } from '../../api/api'
 import Navbar from '../../components/Navbar'
 import Footer from '../../components/Footer'
+import CampoPassword from '../../components/CampoPassword'
 
 export default function Login() {
     const [correo, setCorreo] = useState('')
@@ -20,13 +21,14 @@ export default function Login() {
         try {
             const datos = await loginApi(correo, clave)
             login(datos.token, { tipoUsuario: datos.rol, id: datos.id, nombre: datos.nombre })
-
             if (datos.rol === 'Empresa') navigate('/empresa/dashboard')
             else if (datos.rol === 'Oferente') navigate('/oferente/dashboard')
             else if (datos.rol === 'Admin') navigate('/admin/dashboard')
             else navigate('/')
         } catch (err) {
-            if (err.status === 403) {
+            if (err.body?.mensaje) {
+                setError(err.body.mensaje)
+            } else if (err.status === 403) {
                 setError('Tu cuenta está pendiente de aprobación por el administrador.')
             } else {
                 setError('Correo o clave incorrectos.')
@@ -43,9 +45,7 @@ export default function Login() {
             <main className="main-container">
                 <div className="login-card">
                     <h1>Iniciar sesión</h1>
-
                     {error && <div className="alert error">{error}</div>}
-
                     <form onSubmit={handleSubmit}>
                         <div className="form-group">
                             <label>Correo electrónico</label>
@@ -59,21 +59,18 @@ export default function Login() {
                             />
                         </div>
                         <div className="form-group">
-                            <label>Clave</label>
-                            <input
-                                type="password"
+                            <label>Contraseña</label>
+                            <CampoPassword
+                                name="clave"
                                 value={clave}
                                 onChange={e => setClave(e.target.value)}
-                                placeholder="••••••••"
                                 autoComplete="current-password"
-                                required
                             />
                         </div>
                         <button type="submit" className="btn btn-primary" disabled={cargando}>
                             {cargando ? 'Ingresando...' : 'Ingresar'}
                         </button>
                     </form>
-
                     <div className="login-link">
                         ¿No tenés cuenta?{' '}
                         <Link to="/registro-empresa">Registrá tu empresa</Link>

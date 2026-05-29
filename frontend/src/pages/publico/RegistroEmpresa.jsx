@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom'
 import { registrarEmpresa, getProvincias, getPrefijosTel } from '../../api/api'
 import Navbar from '../../components/Navbar'
 import Footer from '../../components/Footer'
+import CampoPassword from '../../components/CampoPassword'
 
 export default function RegistroEmpresa() {
     const navigate = useNavigate()
@@ -205,25 +206,20 @@ export default function RegistroEmpresa() {
 
                         <div className="form-group">
                             <label>Contraseña (mínimo 6 caracteres)</label>
-                            <input
-                                type="password"
+                            <CampoPassword
                                 name="clave"
                                 value={form.clave}
                                 onChange={handleChange}
-                                placeholder="••••••••"
-                                required
                             />
                         </div>
 
                         <div className="form-group">
                             <label>Confirmar contraseña</label>
-                            <input
-                                type="password"
+                            <CampoPassword
                                 name="confirmPassword"
                                 value={form.confirmPassword}
                                 onChange={handleChange}
-                                placeholder="••••••••"
-                                required
+                                placeholder="Repetí la contraseña"
                             />
                         </div>
 
