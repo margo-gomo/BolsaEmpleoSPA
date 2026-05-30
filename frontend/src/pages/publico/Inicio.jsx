@@ -19,9 +19,9 @@ export default function Inicio() {
                 await Promise.all(
                     lista.map(async (p) => {
                         try {
-                            mapa[p.puestoId] = await getRequisitosPuesto(p.puestoId)
+                            mapa[p.id] = await getRequisitosPuesto(p.id)
                         } catch (_) {
-                            mapa[p.puestoId] = []
+                            mapa[p.id] = []
                         }
                     })
                 )
@@ -136,16 +136,16 @@ export default function Inicio() {
                         )}
 
                         {puestos.map(p => (
-                            <div key={p.puestoId} className="job-card">
+                            <div key={p.id} className="job-card">
                                 <h3>{p.descripcion}</h3>
                                 <p className="job-company">{p.empresa}</p>
                                 <p className="job-salary">{p.simbolo} {p.salario}</p>
 
                                 <div className="job-hover">
                                     <p><strong>Características requeridas</strong></p>
-                                    {requisitos[p.puestoId]?.length > 0 ? (
+                                    {requisitos[p.id]?.length > 0 ? (
                                         <ul className="job-hover-list">
-                                            {requisitos[p.puestoId].map(c => (
+                                            {requisitos[p.id].map(c => (
                                                 <li key={c.id}>
                                                     {c.caracteristica} (nivel {c.nivel})
                                                 </li>
