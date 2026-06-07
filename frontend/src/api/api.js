@@ -26,6 +26,13 @@ export async function login(correo, clave) {
     return manejarRespuesta(res)
 }
 
+export async function logoutApi(token) {
+    await fetch('/api/auth/logout', {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${token}` }
+    });
+}
+
 // PÚBLICO
 export async function getPuestosRecientes() {
     const res = await fetch(`${BASE}/publico/puestos-recientes`)

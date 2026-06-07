@@ -3,6 +3,7 @@ package com.example.backend.presentation.auth;
 import com.example.backend.logic.Usuario;
 import com.example.backend.logic.Service_BolsaEmpleo;
 import com.example.backend.security.JwtService;
+import com.example.backend.security.TokenBlacklistService;
 import com.example.backend.security.UserDetailsImpl;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,6 +27,9 @@ public class AuthController {
 
     @Autowired
     private Service_BolsaEmpleo service_BolsaEmpleo;
+
+    @Autowired
+    private TokenBlacklistService tokenBlacklistService;
 
     @PostMapping("/login")
     public ResponseEntity<?> login(@Valid @RequestBody LoginRequest request) {
@@ -69,5 +73,14 @@ public class AuthController {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                     .body(new ErrorResponse("Correo o clave incorrectos"));
         }
+    }
+
+    @PostMapping("/logout")
+    public ResponseEntity<?> logout(@RequestHeader("Authorization") String authHeader) {
+        if (authHeader != null && authHeader.startsWith("Bearer ")) {
+            String token = authHeader.substring(7);
+            tokenBlacklistService.invalidate(token);
+        }
+        return ResponseEntity.ok().build();
     }
 }
